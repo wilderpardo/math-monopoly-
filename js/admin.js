@@ -81,7 +81,13 @@ async function uploadToCloudinary(fileInput) {
     
     if (!res.ok) throw new Error("Falló la subida de una imagen a Cloudinary");
     const data = await res.json();
-    return data.secure_url; // Obtiene el link HTTPS asignado por Cloudinary
+
+    // 🆕 FIX: fuerza a Cloudinary a entregar la imagen en un formato compatible
+    // con CUALQUIER celular (por ejemplo, convierte automáticamente fotos HEIC
+    // de iPhone a JPG/PNG según lo que mejor soporte cada navegador). Antes,
+    // si alguien subía una foto en HEIC, se veía bien en iPhone pero en Android
+    // aparecía solo el texto "Gráfica" porque la imagen no cargaba.
+    return data.secure_url.replace("/upload/", "/upload/f_auto,q_auto/");
 }
 
 // --- GUARDAR PREGUNTAS DE TEXTO SIMPLE ---
@@ -216,20 +222,47 @@ async function loadSurprises() {
 // --- MONITOREO DE POSICIONES EN TIEMPO REAL ---
 function listenPlayers() {
     const list = document.getElementById("leaderboard");
-    const q = query(collection(db, "players"), orderBy("position", "desc"));
+    // 🆕 Ya no se ordena directamente en la consulta de Firestore: el orden final
+    // combina dos criterios (orden de llegada + avance en el tablero), así que
+    // se trae la lista completa y se ordena en JavaScript (ver más abajo).
+    const q = collection(db, "players");
     
     onSnapshot(q, (snapshot) => {
+        // Convierte el snapshot en un arreglo normal para poder ordenarlo
+        const players = [];
+        snapshot.forEach(docSnap => players.push(docSnap.data()));
+
+        // ==========================================================================
+        // 🆕 AJUSTE #4: ORDEN DE LA TABLA (ganadores arriba, en orden real de llegada;
+        // el resto abajo, ordenado por cuánto han avanzado en el tablero)
+        // ==========================================================================
+        players.sort((a, b) => {
+            const aFinished = a.status === "finished";
+            const bFinished = b.status === "finished";
+            if (aFinished && bFinished) {
+                // Ambos ya llegaron: gana el que tenga el endTime más antiguo (llegó primero)
+                return (a.endTime || 0) - (b.endTime || 0);
+            }
+            if (aFinished) return -1; // Los que ya llegaron siempre van antes que los que siguen jugando
+            if (bFinished) return 1;
+            // Ninguno ha llegado todavía: se ordenan por casilla actual (mayor avance primero)
+            return (b.position || 0) - (a.position || 0);
+        });
+
         list.innerHTML = "";
-        snapshot.forEach(doc => {
-            const p = doc.data();
+        let rankCounter = 0; // Cuenta solo a los jugadores que ya llegaron, para numerar 1º, 2º, 3º...
+        const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
+
+        players.forEach(p => {
             const li = document.createElement("li");
-            // 🆕 AJUSTE #2/#3: llegar a la última casilla ya no es victoria automática
-            // (el jugador debe responder primero la pregunta final), por eso ahora
-            // se distingue "en la meta, pendiente de la pregunta final" de "ganador confirmado"
-            // usando el campo status, en vez de asumir victoria solo por la posición.
             let posText;
+
             if (p.status === "finished") {
-                posText = "🏆 GANADOR";
+                // 🆕 En vez de un genérico "🏆 GANADOR" para todos, ahora se numera
+                // el puesto real de llegada (1º, 2º, 3º...) con medalla para el podio
+                rankCounter++;
+                const medal = medals[rankCounter] || "🏅";
+                posText = `${medal} Puesto #${rankCounter}`;
             } else if (p.position >= BOARD_SIZE) {
                 posText = "🏁 EN LA META (pregunta final pendiente)";
             } else {
