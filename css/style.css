@@ -147,8 +147,19 @@ button:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
 .modal.active .flip-card-inner { transform: rotateY(0deg); }
 .flip-card-front { backface-visibility: hidden; width: 100%; }
 
+/* 🆕 AJUSTE: espaciado entre las opciones de respuesta de texto.
+   Antes esta clase no tenía NINGÚN estilo propio, por lo que los botones
+   de las preguntas quedaban pegados unos a otros. Con "gap" se genera
+   una separación uniforme entre cada opción. */
+.options-container { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 14px; 
+    margin-top: 18px; 
+}
+
 /* Opciones de Imagen Miniatura */
-.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
 .img-option-btn {
     background: #ffffff; border: 2px solid var(--border-dark); border-radius: 8px;
     padding: 6px; cursor: pointer; transition: all 0.2s; display: flex;
