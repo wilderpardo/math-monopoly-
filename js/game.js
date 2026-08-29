@@ -250,31 +250,6 @@ function showFinalQuestion() {
     showNextQuestion();
 }
 
-// ==========================================================================
-// 🆕 AJUSTE #4: PUESTO DE LLEGADA (1º, 2º, 3º...)
-// ==========================================================================
-// Calcula en qué puesto llegó ESTE jugador comparando su hora de finalización
-// (myEndTime) contra la de todos los demás jugadores que ya terminaron.
-// Como cada jugador guarda su propio "endTime" al ganar, el orden de llegada
-// real es simplemente ordenar esas horas de menor a mayor.
-async function getFinishRank(myEndTime) {
-    const snap = await getDocs(collection(db, "players"));
-    const finishedTimes = [];
-    snap.forEach((d) => {
-        const p = d.data();
-        if (p.status === "finished" && p.endTime) finishedTimes.push(p.endTime);
-    });
-    finishedTimes.sort((a, b) => a - b); // De más antiguo (llegó primero) a más reciente
-    return finishedTimes.indexOf(myEndTime) + 1; // +1 porque el array empieza en índice 0
-}
-
-// Traduce el número de puesto a un texto amigable con medalla
-function getRankLabel(rank) {
-    const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
-    const medal = medals[rank] || "🏅";
-    return `${medal} ¡Llegaste en el puesto #${rank}!`;
-}
-
 function triggerSurprise() {
     if (surprises.length === 0) {
         showNextQuestion();
@@ -346,22 +321,13 @@ async function verifyAnswer(isCorrect) {
             correctCount++;
             playerQIndex++; // Mantiene consistente el conteo de preguntas avanzadas
 
-            // 🆕 Se guarda la hora exacta de finalización en una variable propia
-            // (myEndTime) para poder identificarla luego al calcular el puesto.
-            const myEndTime = Date.now();
-
             await updateDoc(doc(db, "players", playerId), {
                 position: currentPos,
                 correctCount,
                 incorrectCount,
                 status: "finished",
-                endTime: myEndTime
+                endTime: Date.now()
             });
-
-            // 🆕 AJUSTE #4: calcula el puesto de llegada y lo muestra en el modal de victoria
-            const rank = await getFinishRank(myEndTime);
-            const rankTextEl = document.getElementById("rankText");
-            if (rankTextEl) rankTextEl.innerText = getRankLabel(rank);
 
             // ✅ Solo AHORA, tras responder correctamente la pregunta final, se declara la victoria
             modalWinner.classList.add("active");
