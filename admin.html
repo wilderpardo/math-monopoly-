@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Math Monopoly</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- PANTALLA DE ACCESO ADMIN -->
+    <div id="loginScreen" class="screen active">
+        <div class="card">
+            <h1>Admin Access</h1>
+            <input type="email" id="adminEmail" placeholder="Correo electrónico">
+            <input type="password" id="adminPass" placeholder="Contraseña">
+            <button id="btnLogin">Entrar al Control</button>
+        </div>
+    </div>
+    
+    <!-- PANEL DE CONTROL GENERAL -->
+    <div id="adminPanel" class="screen" style="max-width: 900px;">
+        <div class="card">
+            <h1>⚙️ Control Math Monopoly</h1>
+            <div class="admin-grid">
+                
+                <div class="section">
+                    <h2>Estado de la Partida</h2>
+                    <button id="btnStartGame" style="background: var(--neon-green);">▶️ Iniciar Partida</button>
+                    <button id="btnResetGame" style="background: var(--danger-red); margin-top: 10px;">🔄 Reiniciar Partida</button>
+                </div>
+                
+                <div class="section">
+                    <h2>📊 Posiciones en Tiempo Real</h2>
+                    <ul id="leaderboard" class="leaderboard-list"></ul>
+                </div>
+
+                <!-- SECCIÓN 1: AGREGAR PREGUNTAS DE TEXTO NORMAL -->
+                <div class="section" style="grid-column: span 2;">
+                    <h2>❓ 1. Agregar Pregunta de Texto</h2>
+                    <input type="number" id="newQOrder" placeholder="Número / Orden de la pregunta (Ej: 1, 2...)">
+                    <input type="text" id="newQText" placeholder="Pregunta (ej: ¿Cuál es la derivada de x^2?)">
+                    <input type="text" id="newOpt1" placeholder="Opción 1">
+                    <input type="text" id="newOpt2" placeholder="Opción 2">
+                    <input type="text" id="newOpt3" placeholder="Opción 3">
+                    <input type="text" id="newOpt4" placeholder="Opción 4">
+                    <select id="newCorrect">
+                        <option value="0">Opción 1 es CORRECTA</option>
+                        <option value="1">Opción 2 es CORRECTA</option>
+                        <option value="2">Opción 3 es CORRECTA</option>
+                        <option value="3">Opción 4 es CORRECTA</option>
+                    </select>
+                    <button id="btnAddQuestion">Guardar Pregunta de Texto</button>
+                </div>
+
+                <!-- SECCIÓN 2: EXCLUSIVA CON CARGA DIRECTA DE ARCHIVOS Y CLOUDINARY -->
+                <div class="section" style="grid-column: span 2; border-color: var(--neon-yellow);">
+                    <h2 style="color: var(--neon-yellow);">📈 2. Módulo de Gráficas e Imágenes</h2>
+                    <input type="number" id="gOrder" placeholder="Número / Orden de la pregunta">
+                    <input type="text" id="gText" placeholder="Enunciado (ej: ¿Qué función corresponde a esta gráfica?)">
+                    
+                    <label style="font-size: 12px; color: var(--primary-blue); display:block; text-align:left; margin-bottom: 5px;">Tipo de Pregunta:</label>
+                    <select id="gType">
+                        <option value="text_opts">A. Mostrar Gráfica Principal -> Responder con Texto</option>
+                        <option value="img_opts">B. Mostrar Enunciado -> Elegir entre 4 Imágenes/Gráficas</option>
+                    </select>
+
+                    <!-- Imagen Principal para Modo A -->
+                    <div id="wrapperMainImg" style="text-align: left; margin-bottom: 10px;">
+                        <label style="font-size: 12px; font-weight: bold;">Imagen Principal de la Pregunta:</label>
+                        <input type="file" id="gMainImgFile" accept="image/*">
+                    </div>
+                    
+                    <!-- Cuatro Botones Independientes para Modo B -->
+                    <div id="wrapperOptFiles" style="text-align: left; margin-bottom: 10px; display: none;">
+                        <label style="font-size: 12px; font-weight: bold; color: var(--primary-blue);">Subir las 4 Imágenes para las Opciones desde tu Dispositivo:</label>
+                        <input type="file" id="gOptFile1" accept="image/*" style="margin-top: 4px;">
+                        <input type="file" id="gOptFile2" accept="image/*" style="margin-top: 4px;">
+                        <input type="file" id="gOptFile3" accept="image/*" style="margin-top: 4px;">
+                        <input type="file" id="gOptFile4" accept="image/*" style="margin-top: 4px;">
+                    </div>
+
+                    <!-- Opciones de Texto para Modo A -->
+                    <div id="wrapperOptText">
+                        <input type="text" id="gOpt1" placeholder="Opción Texto 1">
+                        <input type="text" id="gOpt2" placeholder="Opción Texto 2">
+                        <input type="text" id="gOpt3" placeholder="Opción Texto 3">
+                        <input type="text" id="gOpt4" placeholder="Opción Texto 4">
+                    </div>
+                    
+                    <select id="gCorrect">
+                        <option value="0">Opción 1 es CORRECTA</option>
+                        <option value="1">Opción 2 es CORRECTA</option>
+                        <option value="2">Opción 3 es CORRECTA</option>
+                        <option value="3">Opción 4 es CORRECTA</option>
+                    </select>
+
+                    <button id="btnAddGraphQ" style="background: var(--neon-yellow);">Subir a Cloudinary y Guardar Pregunta</button>
+                </div>
+
+                <!-- LISTADO COMPLETO DE PREGUNTAS -->
+                <div class="section" style="grid-column: span 2;">
+                    <h3>Lista Completa de Preguntas Ordenadas</h3>
+                    <ul id="questionsList" class="q-list"></ul>
+                </div>
+
+                <!-- SECCIÓN 3: CARTAS SORPRESA -->
+                <div class="section" style="grid-column: span 2;">
+                    <h2>🎁 3. Cartas Sorpresa</h2>
+                    <input type="text" id="newSurpriseText" placeholder="Ej: ¡Avanzas 2 casillas extra por buen rendimiento!">
+                    <button id="btnAddSurprise">Guardar Sorpresa</button>
+                    <ul id="surprisesList" class="q-list" style="margin-top: 10px;"></ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>
