@@ -1,10 +1,8 @@
+import { loadAdminHints } from './admin-hints.js';
+import { listenRoundState } from './admin-rounds.js';
 import { db, auth } from "./firebase.js";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, setDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-
-// --- PARÁMETROS DE CONEXIÓN A CLOUDINARY ---
-const CLOUD_NAME = "dzjcidzup"; 
-const UPLOAD_PRESET = "math_game_preset";
 
 // 🆕 AJUSTE #1: debe coincidir SIEMPRE con BOARD_SIZE definido en js/game.js,
 // ya que ahí vive la fuente de verdad del tamaño del tablero.
@@ -21,74 +19,19 @@ document.getElementById("btnLogin").addEventListener("click", () => {
 });
 
 onAuthStateChanged(auth, user => {
-    if (user) {
+    if (user && !user.isAnonymous) { // las sesiones anónimas son de estudiantes, nunca del admin
         loginScreen.classList.remove("active");
         adminPanel.classList.add("active");
         loadQuestions();
         loadSurprises();
         listenPlayers();
+        loadAdminHints().catch(() => {}); // El apartado de pistas muestra el motivo y permite recargar.
+        listenRoundState();
     } else {
         loginScreen.classList.add("active");
         adminPanel.classList.remove("active");
     }
 });
-
-// --- CONTROLES DE ESTADO DE LA PARTIDA ---
-document.getElementById("btnStartGame").addEventListener("click", async () => {
-    await setDoc(doc(db, "gameState", "main"), { status: "playing" });
-    alert("¡Partida Iniciada!");
-});
-
-document.getElementById("btnResetGame").addEventListener("click", async () => {
-    if(confirm("¿Reiniciar partida actual? Esto borrará el progreso de los jugadores.")) {
-        await setDoc(doc(db, "gameState", "main"), { status: "waiting" });
-        const snap = await getDocs(collection(db, "players"));
-        snap.forEach(d => deleteDoc(doc(db, "players", d.id)));
-        alert("Partida reiniciada correctamente.");
-    }
-});
-
-// --- CONMUTAR VISTAS SEGÚN EL TIPO DE PREGUNTA SELECCIONADO ---
-const gTypeSelect = document.getElementById("gType");
-const wrapperMainImg = document.getElementById("wrapperMainImg");
-const wrapperOptFiles = document.getElementById("wrapperOptFiles");
-const wrapperOptText = document.getElementById("wrapperOptText");
-
-gTypeSelect.addEventListener("change", () => {
-    if (gTypeSelect.value === "img_opts") {
-        wrapperMainImg.style.display = "none";
-        wrapperOptFiles.style.display = "block";
-        wrapperOptText.style.display = "none";
-    } else {
-        wrapperMainImg.style.display = "block";
-        wrapperOptFiles.style.display = "none";
-        wrapperOptText.style.display = "block";
-    }
-});
-
-// --- FUNCIÓN PARA SUBIR UN ARCHIVO DIRECTO A CLOUDINARY ---
-async function uploadToCloudinary(fileInput) {
-    if (!fileInput.files || fileInput.files.length === 0) return null;
-    
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-    formData.append("upload_preset", UPLOAD_PRESET);
-
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-        method: "POST",
-        body: formData
-    });
-    
-    if (!res.ok) throw new Error("Falló la subida de una imagen a Cloudinary");
-    const data = await res.json();
-
-    // 🆕 FIX: fuerza a Cloudinary a entregar la imagen en un formato compatible
-    // con CUALQUIER celular (por ejemplo, convierte automáticamente fotos HEIC
-    // de iPhone a JPG/PNG según lo que mejor soporte cada navegador). Antes,
-    // si alguien subía una foto en HEIC, se veía bien en iPhone pero en Android
-    // aparecía solo el texto "Gráfica" porque la imagen no cargaba.
-    return data.secure_url.replace("/upload/", "/upload/f_auto,q_auto/");
-}
 
 // --- GUARDAR PREGUNTAS DE TEXTO SIMPLE ---
 document.getElementById("btnAddQuestion").addEventListener("click", async () => {
@@ -105,62 +48,11 @@ document.getElementById("btnAddQuestion").addEventListener("click", async () => 
     const options = [o1, o2, o3, o4].filter(x => x);
 
     await addDoc(collection(db, "questions"), {
-        order, text, options, correctIndex: correct, type: "text"
+        order, text, options, correctIndex: correct, type: "text", topic: document.getElementById("newQTopic").value.trim()
     });
     
     alert("Pregunta de texto guardada.");
     loadQuestions();
-});
-
-// --- GUARDAR PREGUNTA DE GRÁFICA CON SUBIDA AUTOMÁTICA DE IMÁGENES ---
-document.getElementById("btnAddGraphQ").addEventListener("click", async () => {
-    const btn = document.getElementById("btnAddGraphQ");
-    btn.disabled = true;
-    btn.innerText = "Subiendo imágenes a Cloudinary...";
-
-    try {
-        const order = parseInt(document.getElementById("gOrder").value) || 1;
-        const text = document.getElementById("gText").value.trim();
-        const type = gTypeSelect.value;
-        const correct = parseInt(document.getElementById("gCorrect").value);
-
-        if (!text) throw new Error("Ingresa el enunciado de la pregunta.");
-
-        let mainImgUrl = null;
-        let options = [];
-
-        if (type === "text_opts") {
-            // Modo A: Sube la imagen principal y toma los textos
-            mainImgUrl = await uploadToCloudinary(document.getElementById("gMainImgFile"));
-            options = [
-                document.getElementById("gOpt1").value.trim(),
-                document.getElementById("gOpt2").value.trim(),
-                document.getElementById("gOpt3").value.trim(),
-                document.getElementById("gOpt4").value.trim()
-            ].filter(x => x);
-        } else {
-            // Modo B: Sube las 4 imágenes seleccionadas en los inputs independientes
-            const file1 = await uploadToCloudinary(document.getElementById("gOptFile1"));
-            const file2 = await uploadToCloudinary(document.getElementById("gOptFile2"));
-            const file3 = await uploadToCloudinary(document.getElementById("gOptFile3"));
-            const file4 = await uploadToCloudinary(document.getElementById("gOptFile4"));
-
-            options = [file1, file2, file3, file4].filter(x => x !== null);
-            if (options.length < 2) throw new Error("Debes subir al menos 2 imágenes para las opciones.");
-        }
-
-        await addDoc(collection(db, "questions"), {
-            order, text, type, mainImg: mainImgUrl, options, correctIndex: correct
-        });
-
-        alert("¡Pregunta e imágenes procesadas y guardadas!");
-        loadQuestions();
-    } catch (err) {
-        alert("Atención: " + err.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Subir a Cloudinary y Guardar Pregunta";
-    }
 });
 
 // --- LISTADO Y BORRADO DE PREGUNTAS ---
@@ -174,7 +66,13 @@ async function loadQuestions() {
         const data = docSnap.data();
         const li = document.createElement("li");
         let badge = data.type === "img_opts" ? "🖼️ Gráficas" : (data.mainImg ? "📈 Imagen" : "📝 Texto");
-        li.innerHTML = `<span><strong>[#${data.order}]</strong> (${badge}) ${data.text}</span> <button class="btn-delete" data-id="${docSnap.id}">Borrar</button>`;
+        const span = document.createElement("span");
+        const strong = document.createElement("strong");
+        strong.textContent = `[#${data.order}]`;
+        span.append(strong, ` (${badge}) ${data.text}`);
+        const del = document.createElement("button");
+        del.className = "btn-delete"; del.dataset.id = docSnap.id; del.textContent = "Borrar";
+        li.append(span, del);
         qList.appendChild(li);
     });
     
@@ -205,7 +103,11 @@ async function loadSurprises() {
     snapshot.forEach(docSnap => {
         const data = docSnap.data();
         const li = document.createElement("li");
-        li.innerHTML = `<span>🎁 ${data.text}</span> <button class="btn-delete" data-id="${docSnap.id}">Borrar</button>`;
+        const span = document.createElement("span");
+        span.textContent = `🎁 ${data.text}`;
+        const del = document.createElement("button");
+        del.className = "btn-delete"; del.dataset.id = docSnap.id; del.textContent = "Borrar";
+        li.append(span, del);
         sList.appendChild(li);
     });
     
@@ -269,15 +171,18 @@ function listenPlayers() {
                 posText = `Casilla: ${p.position}/${BOARD_SIZE}`;
             }
             
-            li.innerHTML = `
-                <div>
-                    <strong>${p.name}</strong><br>
-                    <small style="color:var(--neon-green)">✅ ${p.correctCount || 0}</small> | 
-                    <small style="color:var(--danger-red)">❌ ${p.incorrectCount || 0}</small>
-                </div>
-                <span style="font-weight:bold; color:var(--primary-blue);">${posText}</span>
-            `;
+            const info = document.createElement("div");
+            const nameEl = document.createElement("strong");
+            nameEl.textContent = p.name; // el nickname lo escribe el estudiante: siempre como texto, nunca como HTML
+            const ok = document.createElement("small"); ok.style.color = "var(--neon-green)"; ok.textContent = `✅ ${p.correctCount || 0}`;
+            const bad = document.createElement("small"); bad.style.color = "var(--danger-red)"; bad.textContent = `❌ ${p.incorrectCount || 0}`;
+            info.append(nameEl, document.createElement("br"), ok, " | ", bad);
+            const pos = document.createElement("span");
+            pos.style.cssText = "font-weight:bold; color:var(--primary-blue);";
+            pos.textContent = posText;
+            li.append(info, pos);
             list.appendChild(li);
         });
     });
 }
+
