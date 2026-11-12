@@ -1,0 +1,13 @@
+<!DOCTYPE html><html lang="es"><head>
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Resultados · Math Monopoly</title>
+ <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src https: wss:; frame-src https:; object-src 'none'; base-uri 'none'; form-action 'none'">
+ <meta name="referrer" content="no-referrer"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/graficas.css">
+</head><body class="dashboard-body g-body">
+ <div id="gGate" class="screen auth-screen active"><div class="card auth-card"><span class="brand-mark">M</span><p class="eyebrow">Espacio del docente</p><h1>Una mirada al aprendizaje.</h1><p id="gGateMsg">Verificando tu acceso…</p><a href="admin.html" class="button-link button-primary">Entrar al panel</a></div></div>
+ <main id="gPage" class="screen dashboard g-page"><header class="app-nav"><a class="brand" href="admin.html"><span class="brand-mark">M</span><span>Math Monopoly<small>Espacio del docente</small></span></a><nav aria-label="Navegación"><a href="admin.html">Tu aula</a><a href="graficas.html" aria-current="page">Resultados</a></nav><a href="admin.html#partida" class="nav-action">Volver a la partida ↗</a></header>
+  <div class="page-heading"><div><p class="eyebrow">Aprendizaje a simple vista</p><h1>Detrás de cada jugada,<br>hay un descubrimiento.</h1><p>Comprende la participación, los aciertos y las ayudas de tu grupo.</p></div><span class="context-badge">Resultados por partida</span></div>
+  <div id="gHistory" class="round-history"></div><div id="gOverview" class="overview-grid" aria-live="polite"></div>
+  <div class="section-heading chart-heading"><div><h2>Explora los resultados.</h2><p class="muted">Cada gráfica incluye una explicación de lo que estás viendo.</p></div><label class="chart-filter">Mostrar categoría<select id="gCategory"><option value="all">Todas las categorías</option></select></label></div><small id="gCount" class="count-note"></small><div id="gCharts"></div>
+  <footer class="page-footer"><span>Math Monopoly</span><p>Los datos acompañan la mirada del docente.</p><a href="admin.html">Volver al aula ↗</a></footer>
+ </main><script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script><script type="module" src="js/graficas.js"></script>
+</body></html>

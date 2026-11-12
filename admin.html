@@ -1,119 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Math Monopoly</title>
-    <link rel="stylesheet" href="css/style.css">
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Aula · Math Monopoly</title>
+ <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src https: wss:; frame-src https:; object-src 'none'; base-uri 'none'; form-action 'none'">
+ <meta name="referrer" content="no-referrer"><link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    <!-- PANTALLA DE ACCESO ADMIN -->
-    <div id="loginScreen" class="screen active">
-        <div class="card">
-            <h1>Admin Access</h1>
-            <input type="email" id="adminEmail" placeholder="Correo electrónico">
-            <input type="password" id="adminPass" placeholder="Contraseña">
-            <button id="btnLogin">Entrar al Control</button>
-        </div>
-    </div>
-    
-    <!-- PANEL DE CONTROL GENERAL -->
-    <div id="adminPanel" class="screen" style="max-width: 900px;">
-        <div class="card">
-            <h1>⚙️ Control Math Monopoly</h1>
-            <div class="admin-grid">
-                
-                <div class="section">
-                    <h2>Estado de la Partida</h2>
-                    <button id="btnStartGame" style="background: var(--neon-green);">▶️ Iniciar Partida</button>
-                    <button id="btnResetGame" style="background: var(--danger-red); margin-top: 10px;">🔄 Reiniciar Partida</button>
-                </div>
-                
-                <div class="section">
-                    <h2>📊 Posiciones en Tiempo Real</h2>
-                    <ul id="leaderboard" class="leaderboard-list"></ul>
-                </div>
-
-                <!-- SECCIÓN 1: AGREGAR PREGUNTAS DE TEXTO NORMAL -->
-                <div class="section" style="grid-column: span 2;">
-                    <h2>❓ 1. Agregar Pregunta de Texto</h2>
-                    <input type="number" id="newQOrder" placeholder="Número / Orden de la pregunta (Ej: 1, 2...)">
-                    <input type="text" id="newQText" placeholder="Pregunta (ej: ¿Cuál es la derivada de x^2?)">
-                    <input type="text" id="newOpt1" placeholder="Opción 1">
-                    <input type="text" id="newOpt2" placeholder="Opción 2">
-                    <input type="text" id="newOpt3" placeholder="Opción 3">
-                    <input type="text" id="newOpt4" placeholder="Opción 4">
-                    <select id="newCorrect">
-                        <option value="0">Opción 1 es CORRECTA</option>
-                        <option value="1">Opción 2 es CORRECTA</option>
-                        <option value="2">Opción 3 es CORRECTA</option>
-                        <option value="3">Opción 4 es CORRECTA</option>
-                    </select>
-                    <button id="btnAddQuestion">Guardar Pregunta de Texto</button>
-                </div>
-
-                <!-- SECCIÓN 2: EXCLUSIVA CON CARGA DIRECTA DE ARCHIVOS Y CLOUDINARY -->
-                <div class="section" style="grid-column: span 2; border-color: var(--neon-yellow);">
-                    <h2 style="color: var(--neon-yellow);">📈 2. Módulo de Gráficas e Imágenes</h2>
-                    <input type="number" id="gOrder" placeholder="Número / Orden de la pregunta">
-                    <input type="text" id="gText" placeholder="Enunciado (ej: ¿Qué función corresponde a esta gráfica?)">
-                    
-                    <label style="font-size: 12px; color: var(--primary-blue); display:block; text-align:left; margin-bottom: 5px;">Tipo de Pregunta:</label>
-                    <select id="gType">
-                        <option value="text_opts">A. Mostrar Gráfica Principal -> Responder con Texto</option>
-                        <option value="img_opts">B. Mostrar Enunciado -> Elegir entre 4 Imágenes/Gráficas</option>
-                    </select>
-
-                    <!-- Imagen Principal para Modo A -->
-                    <div id="wrapperMainImg" style="text-align: left; margin-bottom: 10px;">
-                        <label style="font-size: 12px; font-weight: bold;">Imagen Principal de la Pregunta:</label>
-                        <input type="file" id="gMainImgFile" accept="image/*">
-                    </div>
-                    
-                    <!-- Cuatro Botones Independientes para Modo B -->
-                    <div id="wrapperOptFiles" style="text-align: left; margin-bottom: 10px; display: none;">
-                        <label style="font-size: 12px; font-weight: bold; color: var(--primary-blue);">Subir las 4 Imágenes para las Opciones desde tu Dispositivo:</label>
-                        <input type="file" id="gOptFile1" accept="image/*" style="margin-top: 4px;">
-                        <input type="file" id="gOptFile2" accept="image/*" style="margin-top: 4px;">
-                        <input type="file" id="gOptFile3" accept="image/*" style="margin-top: 4px;">
-                        <input type="file" id="gOptFile4" accept="image/*" style="margin-top: 4px;">
-                    </div>
-
-                    <!-- Opciones de Texto para Modo A -->
-                    <div id="wrapperOptText">
-                        <input type="text" id="gOpt1" placeholder="Opción Texto 1">
-                        <input type="text" id="gOpt2" placeholder="Opción Texto 2">
-                        <input type="text" id="gOpt3" placeholder="Opción Texto 3">
-                        <input type="text" id="gOpt4" placeholder="Opción Texto 4">
-                    </div>
-                    
-                    <select id="gCorrect">
-                        <option value="0">Opción 1 es CORRECTA</option>
-                        <option value="1">Opción 2 es CORRECTA</option>
-                        <option value="2">Opción 3 es CORRECTA</option>
-                        <option value="3">Opción 4 es CORRECTA</option>
-                    </select>
-
-                    <button id="btnAddGraphQ" style="background: var(--neon-yellow);">Subir a Cloudinary y Guardar Pregunta</button>
-                </div>
-
-                <!-- LISTADO COMPLETO DE PREGUNTAS -->
-                <div class="section" style="grid-column: span 2;">
-                    <h3>Lista Completa de Preguntas Ordenadas</h3>
-                    <ul id="questionsList" class="q-list"></ul>
-                </div>
-
-                <!-- SECCIÓN 3: CARTAS SORPRESA -->
-                <div class="section" style="grid-column: span 2;">
-                    <h2>🎁 3. Cartas Sorpresa</h2>
-                    <input type="text" id="newSurpriseText" placeholder="Ej: ¡Avanzas 2 casillas extra por buen rendimiento!">
-                    <button id="btnAddSurprise">Guardar Sorpresa</button>
-                    <ul id="surprisesList" class="q-list" style="margin-top: 10px;"></ul>
-                </div>
-
-            </div>
-        </div>
-    </div>
-    <script type="module" src="js/admin.js"></script>
-</body>
-</html>
+<body class="dashboard-body">
+ <div id="loginScreen" class="screen auth-screen active"><div class="card auth-card">
+  <a class="brand" href="index.html"><span class="brand-mark">M</span><span>Math Monopoly<small>Aprender también es jugar.</small></span></a>
+  <p class="eyebrow">Espacio del docente</p><h1>Todo listo para<br>una gran partida.</h1><p class="muted">Entra con tu cuenta para acompañar al grupo.</p>
+  <label for="adminEmail">Correo electrónico</label><input type="email" id="adminEmail" autocomplete="username" placeholder="Tu correo">
+  <label for="adminPass">Contraseña</label><input type="password" id="adminPass" autocomplete="current-password" placeholder="Tu contraseña">
+  <button id="btnLogin">Entrar al aula <span aria-hidden="true">→</span></button><a class="text-link" href="index.html">Volver al juego</a>
+ </div></div>
+ <main id="adminPanel" class="screen dashboard">
+  <header class="app-nav"><a class="brand" href="admin.html"><span class="brand-mark">M</span><span>Math Monopoly<small>Espacio del docente</small></span></a><nav aria-label="Secciones del panel"><a href="#partida">Partida</a><a href="#resultados">Resultados</a><a href="#contenido">Preguntas</a><a href="#pistas">Pistas</a></nav><a class="nav-action" href="graficas.html">Ver gráficas ↗</a></header>
+  <div class="page-heading"><div><p class="eyebrow">Tu aula, en perspectiva</p><h1>Cada jugada cuenta.</h1><p>Organiza la partida y descubre cómo está aprendiendo tu grupo.</p></div><span class="context-badge"><i></i> Panel del docente</span></div>
+  <section id="partida" class="session-grid" aria-label="Control de partida">
+   <div class="section session-control"><div class="section-heading"><div><p class="eyebrow">01 · En el aula</p><h2>La próxima partida empieza aquí.</h2></div><span class="subtle-icon" aria-hidden="true">↗</span></div>
+    <label for="roundLabel">Nombre de la partida o del grupo</label><input type="text" id="roundLabel" maxlength="40" placeholder="Por ejemplo: 10-A · Funciones">
+    <div class="button-row"><button id="btnStartGame" class="button-primary">Iniciar partida</button><button id="btnEndGame" class="button-secondary">Finalizar y guardar</button></div>
+    <p id="roundStatus" class="status-message" role="status">Conectando con la partida…</p><button id="btnResetGame" class="button-text danger">Preparar otra partida</button>
+   </div>
+   <div class="section standings"><div class="section-heading"><div><p class="eyebrow">En directo</p><h2>El recorrido del grupo</h2></div><span class="live-dot" aria-label="Actualización en directo"></span></div><p class="muted">Posiciones, aciertos y llegada a la meta.</p><ul id="leaderboard" class="leaderboard-list"></ul></div>
+  </section>
+  <section id="resultados" class="results-section"><div class="section-heading"><div><p class="eyebrow">02 · Lo que está pasando</p><h2>Los resultados, con claridad.</h2><p class="muted">Una sola partida a la vez. Cambia la fecha para consultar su historial.</p></div><a id="btnGraficas" class="button-secondary button-link" href="graficas.html">Explorar gráficas ↗</a></div>
+   <div id="mHistory" class="round-history"></div><div id="mOverview" class="overview-grid" aria-live="polite"></div>
+   <details class="section display-settings"><summary>Personalizar las métricas visibles <span>Configuración de vista</span></summary><p class="muted">El registro de actividad continúa siempre. Aquí eliges qué mostrar.</p><div class="button-row compact"><button id="mAll" class="button-secondary">Seleccionar todas</button><button id="mNone" class="button-text">Desmarcar todas</button></div><div id="mSelector"></div></details>
+   <div class="section metrics-detail"><div class="section-heading"><div><h3>Detalle de la partida</h3><p class="muted">Abre una sección para ver sus indicadores y tablas.</p></div></div><div class="metric-controls">
+    <label>Categoría<select id="mCategory"><option value="all">Todas las categorías</option></select></label><label>Indicador<select id="mMetric"><option value="all">Todas las métricas activas</option></select></label><label>Presentación<select id="mView"><option value="collapsed">Secciones desplegables</option><option value="open">Todas abiertas</option></select></label>
+   </div><small id="mCount" class="count-note"></small><div id="mDash" class="m-grid"></div></div>
+  </section>
+  <section id="contenido" class="content-section"><div class="section-heading"><div><p class="eyebrow">03 · Prepara la experiencia</p><h2>Buenas preguntas. Grandes descubrimientos.</h2></div></div><div class="content-grid">
+   <details class="section editor-card" open><summary>Crear una pregunta <span>Texto y opciones</span></summary><div class="field-grid"><label>Orden<input type="number" id="newQOrder" min="1" placeholder="1"></label><label>Tema<input type="text" id="newQTopic" list="topicList" placeholder="Funciones, elipse…"></label></div><label for="newQText">Enunciado</label><input type="text" id="newQText" placeholder="Escribe una pregunta clara para el grupo"><div class="field-grid"><label>Opción 1<input type="text" id="newOpt1" placeholder="Primera opción"></label><label>Opción 2<input type="text" id="newOpt2" placeholder="Segunda opción"></label><label>Opción 3<input type="text" id="newOpt3" placeholder="Opcional"></label><label>Opción 4<input type="text" id="newOpt4" placeholder="Opcional"></label></div><label for="newCorrect">Respuesta correcta</label><select id="newCorrect"><option value="0">Opción 1</option><option value="1">Opción 2</option><option value="2">Opción 3</option><option value="3">Opción 4</option></select><button id="btnAddQuestion">Guardar pregunta</button></details>
+   <div class="section"><div class="section-heading"><div><h3>Banco de preguntas</h3><p class="muted">Se presentan en el orden que has definido.</p></div></div><ul id="questionsList" class="q-list"></ul></div>
+  </div></section>
+  <section id="pistas" class="section hints-section"><div class="section-heading"><div><p class="eyebrow">04 · Una ayuda para avanzar</p><h2>Pistas que acompañan.</h2><p class="muted">Un banco general para todos. Solo tú puedes publicarlas y editarlas.</p></div></div><div class="content-grid"><div>
+   <label for="adminHintAuthor">Autor o estudiante <span class="optional">Opcional</span></label><input id="adminHintAuthor" maxlength="20" placeholder="Administrador">
+   <label for="adminHintSteps">Pasos de la pista</label><textarea id="adminHintSteps" rows="5" maxlength="1300" placeholder="Un paso por línea. Ayuda a razonar sin revelar la respuesta."></textarea><small class="field-help">Hasta 6 pasos, con un máximo de 200 caracteres cada uno.</small><div class="button-row"><button id="btnSaveHint">Guardar pista</button><button id="btnNewHint" class="button-secondary">Nueva pista</button></div>
+   <details class="upload-panel"><summary>Subir un archivo de pistas</summary><label for="hintFile">Archivo TXT o JSON</label><input id="hintFile" type="file" accept=".txt,.json,text/plain,application/json"><p class="field-help">TXT: un paso por línea. JSON: lista de objetos con steps y authorName opcional.</p><button id="btnUploadHints" class="button-secondary">Subir pistas</button></details><p id="hintAdminStatus" class="status-message" role="status"></p>
+  </div><div><div class="list-heading"><h3>Banco de pistas</h3><button id="btnReloadHints" class="button-text">Actualizar ↻</button></div><ul id="hintsList" class="q-list"></ul></div></div></section>
+  <details class="section surprise-editor"><summary>Cartas sorpresa <span>Pequeños giros en el recorrido</span></summary><label for="newSurpriseText">Mensaje de la carta</label><input type="text" id="newSurpriseText" placeholder="Escribe el mensaje que verá el estudiante"><button id="btnAddSurprise">Guardar sorpresa</button><ul id="surprisesList" class="q-list"></ul></details>
+  <datalist id="topicList"><option value="Círculo"><option value="Parábola"><option value="Elipse"><option value="Hipérbola"><option value="Funciones"><option value="Cálculo multivariable"></datalist>
+  <footer class="page-footer"><span>Math Monopoly</span><p>Aprender, intentar y volver a avanzar.</p><a href="index.html">Abrir el juego ↗</a></footer>
+ </main>
+ <script type="module" src="js/admin.js"></script><script type="module" src="js/admin-metrics.js"></script>
+</body></html>
